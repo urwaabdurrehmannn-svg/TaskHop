@@ -1,0 +1,137 @@
+import type { Skill, Task } from '../types';
+import { mockUsers } from './users';
+
+let skillCounter = 1000;
+function skill(name: string): Skill {
+  skillCounter += 1;
+  return { id: `skill-${skillCounter}`, name };
+}
+
+export const initialTasks: Task[] = [
+  {
+    id: 't-1',
+    title: 'Edit our university event highlight video',
+    description:
+      "We filmed 2 hours of footage from our society's spring showcase and need a punchy 90-second highlight reel for Instagram. Looking for someone with a good eye for pacing and music sync.",
+    category: 'Video & Photo',
+    skills: [skill('Video Editing'), skill('Premiere Pro'), skill('YouTube Editing')],
+    deadline: '2026-08-27',
+    status: 'matching',
+    poster: mockUsers[2],
+    createdAt: '2026-08-20T10:00:00Z',
+    matchCount: 4,
+    exchangeType: 'skill',
+    offeredSkill: "I'll tutor you in stats in exchange for the edit.",
+    offeredAmount: null,
+    paymentStatus: null,
+  },
+  {
+    id: 't-2',
+    title: 'Design a logo + brand kit for my startup',
+    description:
+      'Early-stage campus startup needs a clean, modern logo and a mini brand kit (colors, fonts, business card mockup). Figma files preferred.',
+    category: 'Design & Creative',
+    skills: [skill('Graphic Design'), skill('Figma'), skill('Brand Identity')],
+    deadline: '2026-09-02',
+    status: 'open',
+    poster: mockUsers[3],
+    createdAt: '2026-08-21T14:30:00Z',
+    matchCount: 3,
+    exchangeType: 'money',
+    offeredSkill: null,
+    offeredAmount: 3000,
+    paymentStatus: 'payment_pending',
+  },
+  {
+    id: 't-3',
+    title: 'Build a simple React Native RSVP app',
+    description:
+      'Need a lightweight mobile app for event RSVPs — name, email, and a QR code confirmation. Firebase backend is fine.',
+    category: 'Tech & Dev',
+    skills: [skill('React Native'), skill('Firebase')],
+    deadline: '2026-09-05',
+    status: 'open',
+    poster: mockUsers[0],
+    createdAt: '2026-08-19T09:15:00Z',
+    matchCount: 2,
+    exchangeType: 'money',
+    offeredSkill: null,
+    offeredAmount: 5000,
+    paymentStatus: 'payment_pending',
+  },
+  {
+    id: 't-4',
+    title: 'Calculus tutoring before my midterm',
+    description:
+      'Struggling with related rates and optimization problems ahead of my Calc II midterm. Looking for 2-3 focused sessions this week.',
+    category: 'Tutoring & Academics',
+    skills: [skill('Calculus'), skill('Tutoring')],
+    deadline: '2026-08-25',
+    status: 'in_progress',
+    poster: mockUsers[4],
+    createdAt: '2026-08-18T18:45:00Z',
+    matchCount: 5,
+    exchangeType: 'skill',
+    offeredSkill: "I'll proofread your writing in exchange for the tutoring sessions.",
+    offeredAmount: null,
+    paymentStatus: null,
+  },
+  {
+    id: 't-5',
+    title: 'Proofread and tighten my scholarship essay',
+    description:
+      "1200-word personal statement for a scholarship application. Needs a sharp editor to cut fluff and strengthen the narrative.",
+    category: 'Writing & Editing',
+    skills: [skill('Editing'), skill('Copywriting')],
+    deadline: '2026-08-24',
+    status: 'open',
+    poster: mockUsers[5],
+    createdAt: '2026-08-21T08:00:00Z',
+    matchCount: 3,
+    exchangeType: 'money',
+    offeredSkill: null,
+    offeredAmount: 1500,
+    paymentStatus: 'payment_pending',
+  },
+  {
+    id: 't-6',
+    title: 'Clean up audio for our podcast pilot episode',
+    description:
+      'Recorded our first podcast episode but the audio has background noise and uneven levels. Need mixing, mastering, and intro music placement.',
+    category: 'Music & Audio',
+    skills: [skill('Audio Editing'), skill('Sound Design')],
+    deadline: '2026-08-30',
+    status: 'completed',
+    poster: mockUsers[1],
+    createdAt: '2026-08-10T12:00:00Z',
+    matchCount: 6,
+    exchangeType: 'money',
+    offeredSkill: null,
+    offeredAmount: 2000,
+    paymentStatus: 'payment_pending',
+  },
+  {
+    id: 't-7',
+    title: 'Full rebrand for our student consulting club including logo, deck template, and Instagram kit',
+    description:
+      "We're relaunching our club under a new name this semester and need a complete visual identity: a versatile logo system that works in full color and monochrome, a reusable slide deck template for sponsor pitches, a one-page brand guide, and a set of Instagram story templates for weekly recruitment posts. Ideally someone who can walk us through the reasoning behind the choices, not just deliver files — we want to actually understand our own brand going forward.",
+    category: 'Design & Creative',
+    skills: [
+      skill('Brand Identity'),
+      skill('Logo Design'),
+      skill('Figma'),
+      skill('Presentation Design'),
+      skill('Social Media Design'),
+      skill('Typography'),
+    ],
+    deadline: '2026-09-10',
+    status: 'open',
+    poster: mockUsers[2],
+    createdAt: '2026-08-21T20:00:00Z',
+    matchCount: 1,
+    exchangeType: 'money',
+    offeredSkill: null,
+    offeredAmount: 8000,
+    paymentStatus: 'payment_pending',
+  },
+];
