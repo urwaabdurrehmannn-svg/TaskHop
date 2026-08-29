@@ -1,12 +1,13 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, getCategoryColor } from '../../constants/colors';
-import { Radius, Shadow, Spacing } from '../../constants/spacing';
+import { Radius, Spacing } from '../../constants/spacing';
 import { Typography } from '../../constants/typography';
 import { Avatar, AvatarSize } from '../common/Avatar';
 import { SkillTag } from '../common/SkillTag';
 import { Badge } from '../common/Badge';
+import { Card } from '../common/Card';
 import { getCategoryIcon } from '../../data/categories';
 import type { Task } from '../../types';
 import { formatDeadline } from '../../utils/date';
@@ -15,6 +16,8 @@ import { describeExchange } from '../../utils/exchange';
 interface TaskCardProps {
   task: Task;
   onPress?: () => void;
+  /** Position within a feed list -- when set, the card fades/rises in staggered by position. */
+  index?: number;
 }
 
 const STATUS_META: Record<Task['status'], { label: string; color: string; bg: string }> = {
@@ -25,16 +28,18 @@ const STATUS_META: Record<Task['status'], { label: string; color: string; bg: st
   cancelled: { label: 'Cancelled', color: Colors.danger, bg: Colors.dangerLight },
 };
 
-export function TaskCard({ task, onPress }: TaskCardProps) {
+export function TaskCard({ task, onPress, index }: TaskCardProps) {
   const categoryColor = getCategoryColor(task.category);
   const status = STATUS_META[task.status];
   const visibleSkills = task.skills.slice(0, 2);
   const extraSkillCount = task.skills.length - visibleSkills.length;
 
   return (
-    <Pressable
+    <Card
       onPress={onPress}
-      style={({ pressed }) => [styles.card, Shadow.sm, pressed && styles.pressed]}
+      style={styles.card}
+      animateEntrance={index !== undefined}
+      entranceIndex={index}
     >
       <View style={styles.topRow}>
         <View style={styles.categoryBadgeWrap}>
@@ -96,21 +101,13 @@ export function TaskCard({ task, onPress }: TaskCardProps) {
           <Text style={styles.metaText}>{formatDeadline(task.deadline)}</Text>
         </View>
       </View>
-    </Pressable>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  pressed: {
-    opacity: 0.9,
   },
   topRow: {
     flexDirection: 'row',

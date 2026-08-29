@@ -1,11 +1,13 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { Radius, Shadow, Spacing } from '../constants/spacing';
 import { Typography } from '../constants/typography';
+import { PressScale } from '../constants/motion';
+import { AnimatedPressable, usePressScale } from '../hooks/usePressScale';
 import type { MainTabParamList } from './types';
 
 import { HomeScreen } from '../screens/home/HomeScreen';
@@ -28,6 +30,39 @@ const TAB_META: Record<keyof MainTabParamList, { label: string; icon: IconName; 
 
 const ICON_CHIP_SIZE = 32;
 
+function TabBarItem({ route, isFocused, meta, onPress }: any) {
+  const { style: pressStyle, onPressIn, onPressOut } = usePressScale(PressScale.small);
+
+  const iconColor = meta.primary ? Colors.textInverse : isFocused ? Colors.primary : Colors.textTertiary;
+  const labelColor = meta.primary ? Colors.accent : isFocused ? Colors.primary : Colors.textTertiary;
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={meta.label}
+      style={[styles.tabItem, pressStyle]}
+    >
+      <View
+        style={[
+          styles.iconChip,
+          meta.primary && styles.iconChipPrimary,
+          !meta.primary && isFocused && styles.iconChipActive,
+        ]}
+      >
+        <Ionicons name={isFocused ? meta.iconActive : meta.icon} size={20} color={iconColor} />
+      </View>
+      <Text style={[styles.tabLabel, { color: labelColor }]} numberOfLines={1}>
+        {meta.label}
+      </Text>
+    </AnimatedPressable>
+  );
+}
+
 function CustomTabBar({ state, navigation }: any) {
   const insets = useSafeAreaInsets();
 
@@ -45,40 +80,7 @@ function CustomTabBar({ state, navigation }: any) {
             }
           };
 
-          const iconColor = meta.primary
-            ? Colors.textInverse
-            : isFocused
-            ? Colors.primary
-            : Colors.textTertiary;
-          const labelColor = meta.primary
-            ? Colors.accent
-            : isFocused
-            ? Colors.primary
-            : Colors.textTertiary;
-
-          return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              hitSlop={6}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isFocused }}
-              style={styles.tabItem}
-            >
-              <View
-                style={[
-                  styles.iconChip,
-                  meta.primary && styles.iconChipPrimary,
-                  !meta.primary && isFocused && styles.iconChipActive,
-                ]}
-              >
-                <Ionicons name={isFocused ? meta.iconActive : meta.icon} size={20} color={iconColor} />
-              </View>
-              <Text style={[styles.tabLabel, { color: labelColor }]} numberOfLines={1}>
-                {meta.label}
-              </Text>
-            </Pressable>
-          );
+          return <TabBarItem key={route.key} route={route} isFocused={isFocused} meta={meta} onPress={onPress} />;
         })}
       </View>
     </View>

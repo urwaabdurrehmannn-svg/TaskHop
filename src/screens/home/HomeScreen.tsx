@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { CompositeNavigationProp } from '@react-navigation/native';
@@ -10,17 +10,18 @@ import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { Avatar, AvatarSize } from '../../components/common/Avatar';
-import { Badge } from '../../components/common/Badge';
+import { FilterChip } from '../../components/common/FilterChip';
 import { EmptyState } from '../../components/common/EmptyState';
-import { LoadingIndicator } from '../../components/common/LoadingIndicator';
+import { TaskListSkeleton } from '../../components/common/Skeleton';
 import { TaskCard } from '../../components/task/TaskCard';
 import { NotificationBell } from '../../components/notifications/NotificationBell';
-import { Colors, getCategoryColor } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { Radius, Shadow, Spacing } from '../../constants/spacing';
 import { Typography } from '../../constants/typography';
 import { useTasks } from '../../context/TaskContext';
 import { useAuth } from '../../context/AuthContext';
 import { CATEGORIES } from '../../data/categories';
+import { AnimatedPressable, usePressScale } from '../../hooks/usePressScale';
 import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
 import type { TaskCategory } from '../../types';
 
@@ -44,6 +45,8 @@ export function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState<TaskCategory | null>(null);
 
   const firstName = profile?.name.split(' ')[0] ?? 'there';
+  const postCardPress = usePressScale();
+  const skillCardPress = usePressScale();
 
   // Refresh whenever the tab regains focus (e.g. returning after posting a
   // task, or another user's task having been posted since the last visit).
@@ -72,13 +75,14 @@ export function HomeScreen() {
       edges={['top', 'left', 'right']}
     >
       <ScreenHeader
-        eyebrow={`${getGreeting()} 👋`}
+        eyebrow={getGreeting()}
         title={`Hey, ${firstName}`}
+        subtitle="Here's what's happening around you."
         right={
           <View style={styles.headerActions}>
             <NotificationBell onPress={() => navigation.navigate('Notifications')} />
             {profile && (
-              <Pressable onPress={() => navigation.navigate('Profile')} hitSlop={8}>
+              <AnimatedPressable onPress={() => navigation.navigate('Profile')} hitSlop={8}>
                 <Avatar
                   name={profile.name}
                   initials={profile.initials}
@@ -87,30 +91,36 @@ export function HomeScreen() {
                   size={AvatarSize.md}
                   availability={profile.availability}
                 />
-              </Pressable>
+              </AnimatedPressable>
             )}
           </View>
         }
       />
 
       <View style={styles.actionsRow}>
-        <Pressable
-          style={[styles.actionCard, styles.actionCardPrimary]}
+        <AnimatedPressable
+          style={[styles.actionCard, styles.actionCardPrimary, postCardPress.style]}
           onPress={() => navigation.navigate('Create')}
+          onPressIn={postCardPress.onPressIn}
+          onPressOut={postCardPress.onPressOut}
+          accessibilityRole="button"
         >
           <View style={styles.actionIconWrap}>
             <Ionicons name="help-buoy" size={20} color={Colors.textInverse} />
           </View>
-          <Text style={styles.actionTitle}>What do you need{'\n'}help with?</Text>
+          <Text style={styles.actionTitle}>Need something{'\n'}done quickly?</Text>
           <View style={styles.actionCta}>
             <Text style={styles.actionCtaText}>Post a task</Text>
             <Ionicons name="arrow-forward" size={14} color={Colors.textInverse} />
           </View>
-        </Pressable>
+        </AnimatedPressable>
 
-        <Pressable
-          style={[styles.actionCard, styles.actionCardAccent]}
+        <AnimatedPressable
+          style={[styles.actionCard, styles.actionCardAccent, skillCardPress.style]}
           onPress={() => navigation.navigate('Profile')}
+          onPressIn={skillCardPress.onPressIn}
+          onPressOut={skillCardPress.onPressOut}
+          accessibilityRole="button"
         >
           <View style={styles.actionIconWrap}>
             <Ionicons name="sparkles" size={20} color={Colors.textInverse} />
@@ -120,7 +130,7 @@ export function HomeScreen() {
             <Text style={styles.actionCtaText}>Update profile</Text>
             <Ionicons name="arrow-forward" size={14} color={Colors.textInverse} />
           </View>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <SectionHeader title="Categories" />
@@ -132,20 +142,15 @@ export function HomeScreen() {
         contentContainerStyle={styles.categoryList}
         renderItem={({ item }) => {
           const isActive = activeCategory === item.name;
-          const color = getCategoryColor(item.name);
           return (
-            <Pressable
-              onPress={() => setActiveCategory(isActive ? null : item.name)}
-              style={styles.categoryChipWrap}
-            >
-              <Badge
+            <View style={styles.categoryChipWrap}>
+              <FilterChip
                 label={item.name}
                 icon={item.icon}
-                size="md"
-                bg={isActive ? Colors.primary : color.bg}
-                color={isActive ? Colors.textInverse : color.text}
+                active={isActive}
+                onPress={() => setActiveCategory(isActive ? null : item.name)}
               />
-            </Pressable>
+            </View>
           );
         }}
       />
@@ -156,7 +161,7 @@ export function HomeScreen() {
       />
 
       {loading && tasks.length === 0 ? (
-        <LoadingIndicator label="Loading tasks…" />
+        <TaskListSkeleton />
       ) : error ? (
         <EmptyState
           icon="cloud-offline-outline"
@@ -175,10 +180,11 @@ export function HomeScreen() {
         />
       ) : (
         <View>
-          {filteredTasks.map((task) => (
+          {filteredTasks.map((task, idx) => (
             <TaskCard
               key={task.id}
               task={task}
+              index={idx}
               onPress={() => navigation.navigate('TaskDetails', { taskId: task.id })}
             />
           ))}

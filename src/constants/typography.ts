@@ -5,6 +5,8 @@ import { Colors } from './colors';
  * TaskHop design system — typography tokens.
  * Uses the platform system font for zero load-time cost; hierarchy comes
  * from size, weight, and letter-spacing rather than a custom typeface.
+ * Large sizes (hero/display/h1) use slightly tighter tracking for a more
+ * considered, premium feel without changing the type scale itself.
  */
 
 export const fontFamily = Platform.select({
@@ -41,7 +43,7 @@ export const Typography: Record<string, Preset> = {
     fontSize: FontSize.hero,
     fontWeight: FontWeight.extrabold,
     lineHeight: 40,
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
     color: Colors.textPrimary,
   },
   display: {
@@ -49,7 +51,7 @@ export const Typography: Record<string, Preset> = {
     fontSize: FontSize.display,
     fontWeight: FontWeight.extrabold,
     lineHeight: 36,
-    letterSpacing: -0.4,
+    letterSpacing: -0.6,
     color: Colors.textPrimary,
   },
   h1: {
@@ -57,7 +59,7 @@ export const Typography: Record<string, Preset> = {
     fontSize: FontSize.xxl,
     fontWeight: FontWeight.bold,
     lineHeight: 30,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     color: Colors.textPrimary,
   },
   h2: {

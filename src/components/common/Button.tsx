@@ -2,7 +2,6 @@ import React from 'react';
 import {
   ActivityIndicator,
   GestureResponderEvent,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -11,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Radius, Spacing } from '../../constants/spacing';
 import { Typography } from '../../constants/typography';
+import { AnimatedPressable, usePressScale } from '../../hooks/usePressScale';
 
 type Variant = 'primary' | 'accent' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -58,15 +58,18 @@ export function Button({
   const v = VARIANT_STYLES[variant];
   const s = SIZE_STYLES[size];
   const isDisabled = disabled || loading;
+  const { style: pressStyle, onPressIn, onPressOut } = usePressScale();
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled }}
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={isDisabled}
       hitSlop={8}
-      style={({ pressed }) => [
+      style={[
         styles.base,
         {
           backgroundColor: v.bg,
@@ -74,9 +77,10 @@ export function Button({
           paddingHorizontal: s.paddingHorizontal,
           borderWidth: v.border ? 1 : 0,
           borderColor: v.border,
-          opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+          opacity: isDisabled ? 0.5 : 1,
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
         },
+        pressStyle,
         style,
       ]}
     >
@@ -95,7 +99,7 @@ export function Button({
           )}
         </View>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 

@@ -1,48 +1,70 @@
 /**
  * TaskHop design system — color tokens.
- * Identity: intelligent + trustworthy (indigo) with human energy (coral).
+ * Identity: deep, trustworthy forest green (the TaskHop brand green) with a
+ * warm gold accent for energy and premium warmth. Every hue below is
+ * contrast-checked against WCAG AA (4.5:1) at the text sizes it's actually
+ * used at, including small badge/caption text — see the accent, success,
+ * warning, danger, and textTertiary roles, which previously failed AA.
+ *
+ * NOTE: the palette keys below (indigo/coral/teal/amber/blue/pink/ink) are
+ * legacy names kept unchanged on purpose — `palette.indigo500` etc. is
+ * imported directly by a few screens (gradients, avatar colors) and by this
+ * file's own Colors/categoryPalette mappings. Only the hex values changed;
+ * every existing import site keeps working untouched.
  */
 
 export const palette = {
-  indigo50: '#EDEBFF',
-  indigo100: '#DCD8FF',
-  indigo400: '#7C6FF5',
-  indigo500: '#5B4EF2',
-  indigo600: '#4A3DE0',
-  indigo700: '#3C2FC4',
+  // Brand green family (indigo500 = #064E3B, indigo700 = #003527 are the
+  // two mandated TaskHop brand colors — kept exactly, unchanged).
+  indigo50: '#F0F4F3',
+  indigo100: '#D2DFDC',
+  indigo400: '#0B6E4F',
+  indigo500: '#064E3B',
+  indigo600: '#034231',
+  indigo700: '#003527',
 
-  coral50: '#FFEDE8',
-  coral100: '#FFDACF',
-  coral400: '#FF8266',
-  coral500: '#FF6B4E',
-  coral600: '#E8532F',
+  // Warm gold accent family (replaces the old coral; fill vs. text-on-light
+  // are distinct shades so both directions clear 4.5:1 on their own).
+  coral50: '#F9F6F1',
+  coral100: '#EDE4D4',
+  coral400: '#B8811A',
+  coral500: '#9C6B12',
+  coral600: '#7A5410',
 
-  teal50: '#E1F7F0',
-  teal500: '#0FA379',
-  teal600: '#0B8B67',
+  // Success (teal slot)
+  teal50: '#ECF4F1',
+  teal500: '#147A4C',
+  teal600: '#0F5C39',
 
-  amber50: '#FFF4DE',
-  amber500: '#DB9A16',
-  amber600: '#B5790A',
+  // Warning (amber slot)
+  amber50: '#F6F2EB',
+  amber500: '#8A5A00',
+  amber600: '#6E4700',
 
-  blue50: '#E4F0FF',
-  blue500: '#2F6FE4',
+  // Info (blue slot)
+  blue50: '#EDF1FC',
+  blue500: '#1D4ED8',
+  blue600: '#1739A6',
 
-  pink50: '#FFE7F3',
-  pink500: '#D6336C',
+  // Category accent (pink slot) — a refined jewel-tone berry, not candy pink
+  pink50: '#FBEEF3',
+  pink500: '#A63166',
 
-  red50: '#FDECEC',
-  red500: '#E5484D',
-  red600: '#C4383D',
+  // Danger (red slot)
+  red50: '#F9EEED',
+  red500: '#B3261E',
+  red600: '#8F1E17',
 
-  ink900: '#14121F',
-  ink700: '#312D45',
-  ink500: '#605C74',
-  ink400: '#8B879C',
-  ink300: '#B6B3C4',
-  ink200: '#DEDCE8',
-  ink100: '#EEEDF5',
-  ink50: '#F7F7FC',
+  // Neutral ink scale — a faint green-grey tint (from the primary hue),
+  // not flat grey.
+  ink900: '#10201A',
+  ink700: '#404D48',
+  ink500: '#58635F',
+  ink400: '#6B7571',
+  ink300: '#939B98',
+  ink200: '#CACECD',
+  ink100: '#DEE0DF',
+  ink50: '#F3F4F4',
 
   white: '#FFFFFF',
 } as const;
@@ -73,11 +95,15 @@ export const Colors = {
   dangerDark: palette.red600,
   dangerLight: palette.red50,
 
+  info: palette.blue500,
+  infoDark: palette.blue600,
+  infoLight: palette.blue50,
+
   // Surfaces
   background: palette.ink50,
   surface: palette.white,
   surfaceAlt: palette.ink100,
-  overlay: 'rgba(20, 18, 31, 0.55)',
+  overlay: 'rgba(16, 32, 26, 0.55)',
 
   // Borders
   border: palette.ink200,
@@ -101,7 +127,7 @@ export const categoryPalette = [
   { bg: palette.coral50, text: palette.coral600 },
   { bg: palette.teal50, text: palette.teal600 },
   { bg: palette.amber50, text: palette.amber600 },
-  { bg: palette.blue50, text: '#1D4FB0' },
+  { bg: palette.blue50, text: palette.blue600 },
   { bg: palette.pink50, text: palette.pink500 },
 ] as const;
 
