@@ -1,7 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import { avatarColorFromId, initialsFromName } from '../../utils/userDisplay';
 import { normalizeSkillName } from '../../utils/skills';
-import type { Availability, Skill, User } from '../../types';
+import type { Availability, CompletedTaskSummary, Skill, User } from '../../types';
 import type { ReviewStats } from '../../types/review';
 
 interface ProfileRow {
@@ -68,9 +68,17 @@ async function fetchTasksPostedCounts(userIds: string[]): Promise<Map<string, nu
   return map;
 }
 
-/** Counts each user's completed tasks as the *accepted* helper -- mere interest never counts, only task_interests.accepted = true joined to a completed task. */
-async function fetchTasksCompletedCounts(userIds: string[]): Promise<Map<string, number>> {
-  const map = new Map<string, number>();
+/**
+ * Each user's genuinely completed tasks, as the *accepted* helper on a
+ * completed task -- mere interest never counts, only task_interests.accepted
+ * = true joined to a completed task (same rule the old count-only version of
+ * this function used). Each entry's rating comes from the task owner's
+ * review of that user for that specific task, if one exists yet (0
+ * otherwise, same "no fabricated rating" convention as mapRowToUser's
+ * avgRating below).
+ */
+async function fetchCompletedTasksForUsers(userIds: string[]): Promise<Map<string, CompletedTaskSummary[]>> {
+  const map = new Map<string, CompletedTaskSummary[]>();
   if (userIds.length === 0) return map;
 
   const { data: links, error: linksError } = await supabase
@@ -85,17 +93,36 @@ async function fetchTasksCompletedCounts(userIds: string[]): Promise<Map<string,
 
   const { data: taskRows, error: tasksError } = await supabase
     .from('tasks')
-    .select('id')
+    .select('id, title, category')
     .in('id', taskIds)
     .eq('status', 'completed');
   if (tasksError) throw tasksError;
 
-  const completedTaskIds = new Set((taskRows ?? []).map((t) => t.id));
+  const completedTasksById = new Map((taskRows ?? []).map((t) => [t.id, t]));
+  if (completedTasksById.size === 0) return map;
+
+  const { data: reviewRows, error: reviewsError } = await supabase
+    .from('reviews')
+    .select('task_id, reviewed_user_id, rating')
+    .in('reviewed_user_id', userIds)
+    .in('task_id', Array.from(completedTasksById.keys()));
+  if (reviewsError) throw reviewsError;
+
+  const ratingByTaskAndUser = new Map(
+    (reviewRows ?? []).map((r) => [`${r.task_id}:${r.reviewed_user_id}`, r.rating])
+  );
 
   for (const link of links ?? []) {
-    if (completedTaskIds.has(link.task_id)) {
-      map.set(link.helper_id, (map.get(link.helper_id) ?? 0) + 1);
-    }
+    const task = completedTasksById.get(link.task_id);
+    if (!task) continue;
+    const existing = map.get(link.helper_id) ?? [];
+    existing.push({
+      id: task.id,
+      title: task.title,
+      category: task.category,
+      rating: ratingByTaskAndUser.get(`${task.id}:${link.helper_id}`) ?? 0,
+    });
+    map.set(link.helper_id, existing);
   }
   return map;
 }
@@ -132,7 +159,7 @@ function mapRowToUser(
   row: ProfileRow,
   skills: Skill[],
   tasksPosted: number,
-  tasksCompleted: number,
+  completedTasks: CompletedTaskSummary[],
   reviewStats: ReviewStats | undefined
 ): User {
   return {
@@ -146,7 +173,7 @@ function mapRowToUser(
     skills,
     availability: (row.availability as Availability) ?? 'available_now',
     stats: {
-      tasksCompleted,
+      tasksCompleted: completedTasks.length,
       tasksPosted,
       avgRating: reviewStats?.average ?? 0,
       reviewCount: reviewStats?.count ?? 0,
@@ -154,7 +181,7 @@ function mapRowToUser(
       // aggregation) -- left at 0 rather than fabricated.
       responseTimeMins: 0,
     },
-    completedTasks: [],
+    completedTasks,
     memberSince: formatMemberSince(row.created_at),
   };
 }
@@ -166,7 +193,7 @@ export async function fetchProfile(userId: string): Promise<User> {
   const [skillsByUser, postedByUser, completedByUser, reviewStatsByUser] = await Promise.all([
     fetchSkillsForUsers([userId]),
     fetchTasksPostedCounts([userId]),
-    fetchTasksCompletedCounts([userId]),
+    fetchCompletedTasksForUsers([userId]),
     fetchReviewStatsForUsers([userId]),
   ]);
 
@@ -174,7 +201,7 @@ export async function fetchProfile(userId: string): Promise<User> {
     row,
     skillsByUser.get(userId) ?? [],
     postedByUser.get(userId) ?? 0,
-    completedByUser.get(userId) ?? 0,
+    completedByUser.get(userId) ?? [],
     reviewStatsByUser.get(userId)
   );
 }
@@ -269,7 +296,7 @@ export async function fetchCandidateProfiles(excludeUserId: string, limit = 25):
   const [skillsByUser, postedByUser, completedByUser, reviewStatsByUser] = await Promise.all([
     fetchSkillsForUsers(ids),
     fetchTasksPostedCounts(ids),
-    fetchTasksCompletedCounts(ids),
+    fetchCompletedTasksForUsers(ids),
     fetchReviewStatsForUsers(ids),
   ]);
 
@@ -278,7 +305,7 @@ export async function fetchCandidateProfiles(excludeUserId: string, limit = 25):
       row,
       skillsByUser.get(row.id) ?? [],
       postedByUser.get(row.id) ?? 0,
-      completedByUser.get(row.id) ?? 0,
+      completedByUser.get(row.id) ?? [],
       reviewStatsByUser.get(row.id)
     )
   );
@@ -296,7 +323,7 @@ export async function fetchProfilesByIds(ids: string[]): Promise<Map<string, Use
   const [skillsByUser, postedByUser, completedByUser, reviewStatsByUser] = await Promise.all([
     fetchSkillsForUsers(uniqueIds),
     fetchTasksPostedCounts(uniqueIds),
-    fetchTasksCompletedCounts(uniqueIds),
+    fetchCompletedTasksForUsers(uniqueIds),
     fetchReviewStatsForUsers(uniqueIds),
   ]);
 
@@ -307,7 +334,7 @@ export async function fetchProfilesByIds(ids: string[]): Promise<Map<string, Use
         row,
         skillsByUser.get(row.id) ?? [],
         postedByUser.get(row.id) ?? 0,
-        completedByUser.get(row.id) ?? 0,
+        completedByUser.get(row.id) ?? [],
         reviewStatsByUser.get(row.id)
       )
     );

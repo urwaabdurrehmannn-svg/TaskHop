@@ -19,6 +19,7 @@ import { ReportModal } from '../../components/trust/ReportModal';
 import { ActionMenu } from '../../components/trust/ActionMenu';
 import { useAuth } from '../../context/AuthContext';
 import { useReportBlockActions } from '../../hooks/useReportBlockActions';
+import { checkContent } from '../../services/ai/safety';
 import * as messageService from '../../services/messages/messageService';
 import type { ThreadMeta } from '../../services/messages/messageService';
 import { Colors } from '../../constants/colors';
@@ -109,6 +110,12 @@ export function ConversationScreen({ route, navigation }: Props) {
   async function handleSend() {
     const trimmed = draft.trim();
     if (!trimmed || !session) return;
+
+    const safety = await checkContent(trimmed, 'message');
+    if (safety.flagged) {
+      setSendError(safety.reasons[0] ?? 'This message could not be sent.');
+      return;
+    }
 
     const tempId = `temp-${Date.now()}`;
     const optimistic: ChatMessage = {

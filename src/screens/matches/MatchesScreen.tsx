@@ -14,7 +14,7 @@ import { Radius, Spacing } from '../../constants/spacing';
 import { Typography } from '../../constants/typography';
 import { useAuth } from '../../context/AuthContext';
 import { useReportBlockActions } from '../../hooks/useReportBlockActions';
-import { generateMatchesForTask } from '../../services/matches/matchService';
+import { rankMatches } from '../../services/ai/matching';
 import * as taskService from '../../services/tasks/taskService';
 import * as interestService from '../../services/interests/interestService';
 import { getCategoryIcon } from '../../data/categories';
@@ -27,7 +27,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Matches'>;
 /**
  * Matches only ever operates on a single task, resolved fresh from Supabase
  * (not any locally-cached list) and verified to belong to the signed-in
- * user before generateMatchesForTask() is ever called. There is
+ * user before rankMatches() is ever called. There is
  * intentionally no task picker here -- Matches is only reachable by owning
  * a task and pressing "Find Matches" from its Task Details screen (My Tasks
  * → task → Find Matches); a taskId for a task you don't own resolves to a
@@ -89,7 +89,7 @@ export function MatchesScreen({ route, navigation }: Props) {
     let cancelled = false;
     setMatchesLoading(true);
     setMatchesError(null);
-    generateMatchesForTask(task)
+    rankMatches(task)
       .then((result) => {
         if (!cancelled) setMatches(result);
       })

@@ -10,6 +10,7 @@ import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { Avatar, AvatarSize } from '../../components/common/Avatar';
+import { Input } from '../../components/common/Input';
 import { FilterChip } from '../../components/common/FilterChip';
 import { EmptyState } from '../../components/common/EmptyState';
 import { TaskListSkeleton } from '../../components/common/Skeleton';
@@ -43,6 +44,7 @@ export function HomeScreen() {
   const { tasks, loading, error, refreshTasks } = useTasks();
   const { profile } = useAuth();
   const [activeCategory, setActiveCategory] = useState<TaskCategory | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const firstName = profile?.name.split(' ')[0] ?? 'there';
   const postCardPress = usePressScale();
@@ -67,6 +69,18 @@ export function HomeScreen() {
     () => (activeCategory ? openOpportunities.filter((t) => t.category === activeCategory) : openOpportunities),
     [openOpportunities, activeCategory]
   );
+
+  // Layered on top of the category filter above -- an empty query leaves
+  // filteredTasks unchanged, a non-empty one narrows it further by matching
+  // title, description, or any required skill name, case-insensitively.
+  const searchedTasks = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return filteredTasks;
+    return filteredTasks.filter((t) => {
+      const haystack = [t.title, t.description, ...t.skills.map((s) => s.name)].join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [filteredTasks, searchQuery]);
 
   return (
     <ScreenContainer
@@ -133,6 +147,15 @@ export function HomeScreen() {
         </AnimatedPressable>
       </View>
 
+      <Input
+        placeholder="Search tasks..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        icon="search-outline"
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+
       <SectionHeader title="Categories" />
       <FlatList
         data={CATEGORIES}
@@ -157,7 +180,7 @@ export function HomeScreen() {
 
       <SectionHeader
         title={activeCategory ?? 'Open opportunities'}
-        right={<Text style={styles.feedCount}>{filteredTasks.length} tasks</Text>}
+        right={<Text style={styles.feedCount}>{searchedTasks.length} tasks</Text>}
       />
 
       {loading && tasks.length === 0 ? (
@@ -170,7 +193,7 @@ export function HomeScreen() {
           actionLabel="Try again"
           onAction={refreshTasks}
         />
-      ) : filteredTasks.length === 0 ? (
+      ) : searchedTasks.length === 0 ? (
         <EmptyState
           icon="search-outline"
           title="No tasks here yet"
@@ -180,7 +203,7 @@ export function HomeScreen() {
         />
       ) : (
         <View>
-          {filteredTasks.map((task, idx) => (
+          {searchedTasks.map((task, idx) => (
             <TaskCard
               key={task.id}
               task={task}

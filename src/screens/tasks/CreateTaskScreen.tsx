@@ -17,6 +17,7 @@ import { useTasks } from '../../context/TaskContext';
 import { CATEGORIES } from '../../data/categories';
 import { validateTaskInput } from '../../services/tasks/taskService';
 import * as taskUnderstanding from '../../services/ai/taskUnderstanding';
+import { checkContent } from '../../services/ai/safety';
 import type { TaskUnderstandingResult } from '../../services/ai/taskUnderstanding';
 import type { MainTabParamList } from '../../navigation/types';
 import type { CreateTaskInput, ExchangeType, TaskCategory } from '../../types';
@@ -152,6 +153,14 @@ export function CreateTaskScreen() {
     setSubmitError(null);
     setSubmitting(true);
     try {
+      const textToCheck =
+        exchangeType === 'skill' ? `${title}\n\n${description}\n\n${offeredSkill}` : `${title}\n\n${description}`;
+      const safety = await checkContent(textToCheck, 'task');
+      if (safety.flagged) {
+        setSubmitError(safety.reasons[0] ?? 'This task could not be posted.');
+        return;
+      }
+
       await addTask(input);
       resetForm();
       navigation.navigate('Home');
